@@ -8,8 +8,8 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #87CEEB, #90EE90);
-            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #4CAF50, #2E7D32);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
@@ -23,49 +23,278 @@
             flex-direction: column;
         }
         
-        .hud {
+        /* Live TV Broadcast Scoreboard */
+        .tv-scoreboard {
             position: absolute;
             top: 20px;
             left: 20px;
-            z-index: 10;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 15px 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            text-align: center;
-            min-width: 300px;
-        }
-        
-        .score-board {
+            background: rgba(15, 20, 30, 0.95);
+            color: white;
+            border-radius: 8px;
+            overflow: hidden;
             display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            font-size: 28px;
+            flex-direction: column;
+            width: 320px;
+            border: 2px solid #2a3143;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            z-index: 10;
+        }
+
+        .team-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #2a3143;
+            height: 40px;
+        }
+
+        .team-row:last-child {
+            border-bottom: none;
+        }
+
+        .team-color {
+            width: 6px;
+            height: 100%;
+            border-radius: 3px;
+            margin-right: 12px;
+        }
+
+        .color-a { background: #007bff; }
+        .color-b { background: #dc3545; }
+
+        .team-name {
+            flex: 0 0 60px;
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .team-score {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 15px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .penalty-history {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex: 1; /* Expand naturally to avoid squishing */
+            justify-content: flex-end;
+            flex-wrap: wrap; /* Wrap dots if the shootout goes very long */
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #3a4153;
+            border: 2px solid #1a202c;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .dot.goal {
+            background: #28a745;
+            box-shadow: 0 0 8px #28a745;
+            border-color: #1e7e34;
+        }
+
+        .dot.miss {
+            background: #dc3545;
+            box-shadow: 0 0 8px #dc3545;
+            border-color: #bd2130;
+        }
+
+        .tv-status {
+            background: #1a202c;
+            text-align: center;
+            font-size: 13px;
+            padding: 6px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #a0aec0;
             font-weight: bold;
         }
-        
-        .game-info {
-            margin: 5px 0;
-            font-size: 20px;
-            min-height: 30px;
+
+        /* In-Goal Transparent Controls */
+        .in-goal-overlay {
+            position: absolute;
+            z-index: 20;
+            pointer-events: none; /* Let empty space clicks pass through */
         }
         
-        .instructions {
-            margin: 5px 0;
+        .instruction-text {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            top: -45px;
+            color: white;
+            font-size: 22px;
+            font-weight: 900;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.9);
+            pointer-events: none;
+            letter-spacing: 2px;
+            display: none;
+        }
+
+        .target-grid {
+            width: 100%;
+            height: 100%;
+            display: none; /* toggled via JS */
+            pointer-events: auto;
+        }
+
+        .kicker-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+
+        .keeper-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .target-zone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .target-zone:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Kicker Target Circles */
+        .target-circle {
+            width: 50px;
+            height: 50px;
+            border: 4px dashed rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            transition: transform 0.2s, border-color 0.2s, background 0.2s;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .target-zone:hover .target-circle {
+            transform: scale(1.2);
+            border-color: #4CAF50;
+            border-style: solid;
+            background: rgba(76, 175, 80, 0.4);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+        }
+
+        /* Keeper Target Zones */
+        .keeper-zone {
+            flex-direction: column;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: bold;
             font-size: 16px;
-            color: #666;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        }
+
+        .keeper-zone:hover {
+            color: #fff;
+            background: rgba(33, 150, 243, 0.25);
+            border-color: rgba(33, 150, 243, 0.5);
+        }
+
+        .dir-icon {
+            font-size: 40px;
+            margin-bottom: 5px;
+            transition: transform 0.2s;
+        }
+
+        .keeper-zone:hover .dir-icon {
+            transform: scale(1.2);
+        }
+
+        /* Game Over Panel (Centered) */
+        #game-over-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            text-align: center;
+            z-index: 30;
+            display: none;
+            min-width: 300px;
+        }
+
+        #game-over-panel h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 26px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        #game-over-panel p {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #475569;
+        }
+        
+        .action-btn.primary {
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid #2563eb;
+            border-radius: 8px;
+            background: #3b82f6;
+            color: white;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+        
+        .action-btn.primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* On Screen Message Overlay */
+        #result-overlay {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 5px 20px rgba(0,0,0,0.8), 0 0 10px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 15;
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 5px;
         }
         
         #gameCanvas {
             width: 100%;
             height: 100%;
-            cursor: crosshair;
             display: block;
         }
         
-        .skin-button {
+        /* Skin Buttons & System */
+        .skin-button, .gk-skin-button {
             position: absolute;
-            top: 20px;
             right: 20px;
             width: 50px;
             height: 50px;
@@ -81,21 +310,23 @@
             transition: transform 0.2s;
         }
         
-        .skin-button:hover {
-            transform: scale(1.1);
-        }
+        .skin-button { top: 20px; }
+        .gk-skin-button { top: 80px; }
+
+        .skin-button:hover, .gk-skin-button:hover { transform: scale(1.1); }
         
         .skin-button-icon {
-            width: 30px;
-            height: 30px;
-            background-color: #555;
+            width: 30px; height: 30px; background-color: #555;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        .gk-skin-button-icon {
+            width: 30px; height: 30px; background-color: #d32f2f;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
         }
         
-        .skin-panel {
+        .skin-panel, .gk-skin-panel {
             position: absolute;
-            right: 20px;
-            top: 80px;
+            right: 80px;
             width: 320px;
             max-height: 80vh;
             overflow-y: auto;
@@ -106,185 +337,108 @@
             z-index: 100;
             display: none;
         }
+
+        .skin-panel { top: 20px; }
+        .gk-skin-panel { top: 80px; }
         
-        .skin-panel h3 {
-            margin-top: 0;
-            text-align: center;
-            color: #444;
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 10px;
-        }
-        
-        .skin-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
+        .skin-panel h3, .gk-skin-panel h3 { margin-top: 0; text-align: center; color: #444; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
+        .skin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         
         .skin-item {
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            transition: transform 0.2s;
+            border: 2px solid #ddd; border-radius: 8px; padding: 10px;
+            display: flex; flex-direction: column; align-items: center; position: relative; transition: transform 0.2s;
         }
-        
-        .skin-item:hover {
-            transform: scale(1.03);
-        }
-        
-        .skin-item.active {
-            border-color: #4CAF50;
-            background-color: rgba(76, 175, 80, 0.1);
-        }
-        
-        .skin-item.locked {
-            opacity: 0.7;
-        }
-        
-        .skin-item.locked::after {
-            content: '🔒';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 30px;
-            color: #ff5722;
-        }
-        
-        .skin-preview {
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-            margin-bottom: 5px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-        }
-        
-        .skin-name {
-            font-weight: bold;
-            text-align: center;
-            margin: 5px 0;
-        }
-        
-        .skin-requirement {
-            font-size: 12px;
-            color: #666;
-            text-align: center;
-        }
-        
-        .close-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .close-button:hover {
-            color: #000;
-        }
-        
-        .stats-display {
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        /* GK Skin Button */
-        .gk-skin-button {
-            position: absolute;
-            top: 80px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            border: 2px solid #444;
-            transition: transform 0.2s;
-        }
-        
-        .gk-skin-button:hover {
-            transform: scale(1.1);
-        }
-        
-        .gk-skin-button-icon {
-            width: 30px;
-            height: 30px;
-            background-color: #d32f2f;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-        }
-        
-        .gk-skin-panel {
-            position: absolute;
-            right: 20px;
-            top: 140px;
-            width: 320px;
-            max-height: 80vh;
-            overflow-y: auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 100;
-            display: none;
-        }
+        .skin-item:hover { transform: scale(1.03); }
+        .skin-item.active { border-color: #4CAF50; background-color: rgba(76, 175, 80, 0.1); }
+        .skin-item.locked { opacity: 0.7; }
+        .skin-item.locked::after { content: '🔒'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; color: #ff5722; }
+        .skin-preview { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; background-color: #f5f5f5; border-radius: 5px; }
+        .skin-name { font-weight: bold; text-align: center; margin: 5px 0; font-size: 14px; }
+        .skin-requirement { font-size: 12px; color: #666; text-align: center; }
+        .close-button { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 20px; cursor: pointer; color: #666; }
+        .close-button:hover { color: #000; }
+        .stats-display { margin-bottom: 15px; padding: 10px; background-color: #f5f5f5; border-radius: 5px; text-align: center; font-size: 14px; }
     </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="hud">
-            <div class="score-board">
-                <div>Team A: <span id="scoreA">0</span></div>
-                <div>Team B: <span id="scoreB">0</span></div>
+        <!-- Live TV Scoreboard -->
+        <div class="tv-scoreboard">
+            <div class="tv-status" id="tv-status">Shootout - Round 1</div>
+            <div class="team-row">
+                <div class="team-color color-a"></div>
+                <div class="team-name">YOU</div>
+                <div class="team-score" id="score-a">0</div>
+                <div class="penalty-history" id="history-a">
+                    <!-- Dots injected via JS -->
+                </div>
             </div>
-            <div class="game-info" id="gameInfo">Team A's turn to kick!</div>
-            <div class="instructions" id="instructions">Loading sprites...</div>
+            <div class="team-row">
+                <div class="team-color color-b"></div>
+                <div class="team-name">AI</div>
+                <div class="team-score" id="score-b">0</div>
+                <div class="penalty-history" id="history-b">
+                    <!-- Dots injected via JS -->
+                </div>
+            </div>
         </div>
+
+        <div id="result-overlay">GOAL!</div>
         
-        <div class="skin-button" id="skinButton">
-            <div class="skin-button-icon"></div>
+        <!-- In-Goal Transparent Control Panels -->
+        <div id="in-goal-controls" class="in-goal-overlay">
+            <div id="instruction-text" class="instruction-text">CHOOSE TARGET</div>
+            
+            <!-- Controls: Player as Kicker -->
+            <div id="controls-kicker" class="target-grid kicker-grid">
+                <div class="target-zone" onclick="takeKickAction('TL')"><div class="target-circle"></div></div>
+                <div class="target-zone" onclick="takeKickAction('TC')"><div class="target-circle"></div></div>
+                <div class="target-zone" onclick="takeKickAction('TR')"><div class="target-circle"></div></div>
+                <div class="target-zone" onclick="takeKickAction('BL')"><div class="target-circle"></div></div>
+                <div class="target-zone" onclick="takeKickAction('BC')"><div class="target-circle"></div></div>
+                <div class="target-zone" onclick="takeKickAction('BR')"><div class="target-circle"></div></div>
+            </div>
+
+            <!-- Controls: Player as Goalkeeper -->
+            <div id="controls-keeper" class="target-grid keeper-grid">
+                <div class="target-zone keeper-zone" onclick="takeDiveAction('L')">
+                    <span class="dir-icon">⬅</span>
+                    <span>DIVE LEFT</span>
+                </div>
+                <div class="target-zone keeper-zone" onclick="takeDiveAction('C')">
+                    <span class="dir-icon">⬇</span>
+                    <span>STAY</span>
+                </div>
+                <div class="target-zone keeper-zone" onclick="takeDiveAction('R')">
+                    <span class="dir-icon">➡</span>
+                    <span>DIVE RIGHT</span>
+                </div>
+            </div>
         </div>
-        
-        <!-- New GK Skin Button -->
-        <div class="gk-skin-button" id="gkSkinButton">
-            <div class="gk-skin-button-icon"></div>
+
+        <!-- Controls: Game Over -->
+        <div id="game-over-panel">
+            <h2 id="go-title">SHOOTOUT OVER</h2>
+            <p id="go-desc">You Won!</p>
+            <button class="action-btn primary" onclick="restartGame()">Restart Game</button>
         </div>
+
+        <!-- Skin System UI -->
+        <div class="skin-button" id="skinButton" title="Player Skins"><div class="skin-button-icon"></div></div>
+        <div class="gk-skin-button" id="gkSkinButton" title="Goalkeeper Skins"><div class="gk-skin-button-icon"></div></div>
         
         <div class="skin-panel" id="skinPanel">
             <button class="close-button" id="closeSkinPanel">×</button>
             <h3>Player Skins</h3>
-            <div class="stats-display" id="statsDisplay">
-                Total Goals: <span id="totalGoals">0</span> | Saves: <span id="totalSaves">0</span>
-            </div>
-            <div class="skin-grid" id="skinGrid">
-            </div>
+            <div class="stats-display">Total Goals: <span id="totalGoals">0</span></div>
+            <div class="skin-grid" id="skinGrid"></div>
         </div>
         
-        <!-- GK Skin Panel -->
         <div class="gk-skin-panel" id="gkSkinPanel">
             <button class="close-button" id="closeGkSkinPanel">×</button>
             <h3>Goalkeeper Skins</h3>
-            <div class="stats-display" id="gkStatsDisplay">
-                Total Saves: <span id="totalSavesGk">0</span>
-            </div>
-            <div class="skin-grid" id="gkSkinGrid">
-                <!-- GK Skin items will be added here dynamically -->
-            </div>
+            <div class="stats-display">Total Saves: <span id="totalSavesGk">0</span></div>
+            <div class="skin-grid" id="gkSkinGrid"></div>
         </div>
         
         <canvas id="gameCanvas"></canvas>
@@ -294,1089 +448,612 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        let scaleX = 1;
-        let scaleY = 1;
-        let baseWidth = 800;
-        let baseHeight = 600;
+        let scaleX = 1, scaleY = 1;
+        let baseWidth = 800, baseHeight = 600;
         
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            scaleX = canvas.width / baseWidth;
-            scaleY = canvas.height / baseHeight;
-            
-            updateSpritePositions();
-        }
-        
-        function updateSpritePositions() {
-            Object.keys(sprites).forEach(key => {
-                sprites[key].x = sprites[key].baseX * scaleX;
-                sprites[key].y = sprites[key].baseY * scaleY;
-                sprites[key].width = sprites[key].baseWidth * scaleX;
-                sprites[key].height = sprites[key].baseHeight * scaleY;
-                sprites[key].scaledHitboxWidth = sprites[key].hitboxWidth * scaleX;
-                sprites[key].scaledHitboxHeight = sprites[key].hitboxHeight * scaleY;
-                sprites[key].scaledHitboxOffsetX = sprites[key].hitboxOffsetX * scaleX;
-                sprites[key].scaledHitboxOffsetY = sprites[key].hitboxOffsetY * scaleY;
-            });
-            
-            ball = { ...sprites.ball };
-            keeper = { ...sprites.keeper };
-            kicker = { ...sprites.kicker };
-        }
-        
-        let playerStats = {
-            totalGoals: 0,
-            totalSaves: 0,
-            currentSkin: 'default',
-            currentGkSkin: 'default'
-        };
-
-        const images = {};
-        const imageNames = ['theball', 'thegoal', 'thekeeper', 'thekicker'];
-        let imagesLoaded = 0;
-
-        // Goalkeeper skin data with requirements
-        const gkSkins = [
-            { id: 'default', name: 'Andre Onana', file: 'thekeeper.png', requirement: 0, type: 'keeper' },
-            { id: 'allisson', name: 'Allisson', file: 'GKSkin/Allisson.png', requirement: 0, type: 'keeper' },
-            { id: 'courtouis', name: 'Thibaut Courtois', file: 'GKSkin/Courtouis.png', requirement: 3, type: 'keeper' },
-            { id: 'degea', name: 'David De Gea', file: 'GKSkin/David De Gea.png', requirement: 6, type: 'keeper' },
-            { id: 'buffon', name: 'Gianluigi Buffon', file: 'GKSkin/Gianluigi Buffon.png', requirement: 9, type: 'keeper' },
-            { id: 'neuer', name: 'Manuel Neuer', file: 'GKSkin/Manuel Neur.png', requirement: 12, type: 'keeper' },
-            { id: 'szczesny', name: 'Wojciech Szczęsny', file: 'GKSkin/Szczesny.png', requirement: 15, type: 'keeper' }
-        ];
-        
-        function loadImages() {
-            imageNames.forEach(name => {
-                images[name] = new Image();
-                images[name].onload = () => {
-                    imagesLoaded++;
-                    if (imagesLoaded === imageNames.length) {
-                        initGame();
-                    }
-                };
-                images[name].src = `${name}.png`;
-            });
-            
-            // Load current player skin if different from default
-            if (playerStats && playerStats.currentSkin !== 'default') {
-                const selectedSkin = skins.find(skin => skin.id === playerStats.currentSkin);
-                if (selectedSkin) {
-                    images.thekicker = new Image();
-                    images.thekicker.src = selectedSkin.file;
-                }
-            }
-            
-            // Load current GK skin if different from default
-            if (playerStats && playerStats.currentGkSkin !== 'default') {
-                const selectedGkSkin = gkSkins.find(skin => skin.id === playerStats.currentGkSkin);
-                if (selectedGkSkin) {
-                    images.thekeeper = new Image();
-                    images.thekeeper.src = selectedGkSkin.file;
-                }
-            }
-        }
-        
-        let gameState = 'TEAM_A_KICK';
+        // Game State Variables
+        let gameState = 'INIT'; // INIT, PLAYER_KICK, PLAYER_DIVE, ANIMATING, RESULT, GAME_OVER
+        let currentRound = 1;
+        let kicksA = 0; // Player kicks taken
+        let kicksB = 0; // AI kicks taken
         let scoreA = 0;
         let scoreB = 0;
-        let round = 1;
-        const maxRounds = 5;
-        
+        let historyA = []; // Array of 'goal', 'miss', 'save'
+        let historyB = [];
+        let isSuddenDeath = false;
+
+        // Animation Variables
+        let animProgress = 0;
+        let ballStart = {x: 0, y: 0}, ballTarget = {x: 0, y: 0};
+        let keeperStart = {x: 0, y: 0}, keeperTarget = {x: 0, y: 0};
+        let keeperRotation = 0, keeperTargetRot = 0;
+        let kickResult = ''; // 'goal', 'miss', 'save'
+        let resultMessageText = '';
+        let ballDeflectStart = {x: 0, y: 0};
+        let ballDeflectTarget = {x: 0, y: 0};
+
         const sprites = {
-            ball: { 
-                baseX: 400, baseY: 500, baseWidth: 35, baseHeight: 48,
-                x: 400, y: 500, width: 35, height: 48, image: 'theball',
-                hitboxWidth: 35, hitboxHeight: 48, hitboxOffsetX: 0, hitboxOffsetY: 0
-            },
-            goal: { 
-                baseX: 200, baseY: 80, baseWidth: 400, baseHeight: 199,
-                x: 200, y: 80, width: 400, height: 199, image: 'thegoal',
-                hitboxWidth: 350, hitboxHeight: 150, hitboxOffsetX: 25, hitboxOffsetY: 25
-            },
-            keeper: { 
-                baseX: 300, baseY: 90, baseWidth: 200, baseHeight: 200,
-                x: 300, y: 90, width: 200, height: 200, image: 'thekeeper',
-                hitboxWidth: 70, hitboxHeight: 150, hitboxOffsetX: 68, hitboxOffsetY: 40
-            },
-            kicker: { 
-                baseX: 200, baseY: 450, baseWidth: 200, baseHeight: 517,
-                x: 200, y: 450, width: 200, height: 517, image: 'thekicker',
-                hitboxWidth: 200, hitboxHeight: 517, hitboxOffsetX: 0, hitboxOffsetY: 0
-            }
+            ball: { baseX: 382.5, baseY: 480, baseWidth: 35, baseHeight: 48, x: 0, y: 0, width: 0, height: 0, image: 'theball' },
+            goal: { baseX: 200, baseY: 80, baseWidth: 400, baseHeight: 199, x: 0, y: 0, width: 0, height: 0, image: 'thegoal' },
+            keeper: { baseX: 300, baseY: 130, baseWidth: 200, baseHeight: 200, x: 0, y: 0, width: 0, height: 0, image: 'thekeeper' },
+            kicker: { baseX: 250, baseY: 380, baseWidth: 150, baseHeight: 387, x: 0, y: 0, width: 0, height: 0, image: 'thekicker' }
         };
         
         let ball = { ...sprites.ball };
         let keeper = { ...sprites.keeper };
         let kicker = { ...sprites.kicker };
-        
-        let ballVelocity = { x: 0, y: 0 };
-        let isDragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let dragObject = null;
-        let ballInMotion = false;
-        let kickTimer = 0;
-        let gkTimer = 0;
-        let keeperDiving = false;
-        let keeperDiveDirection = { x: 0, y: 0 };
-        let keeperDiveSpeed = 8;
-        let keeperDiveTarget = { x: 0, y: 0 };
-        let keeperDiveStartY = 0;
-        let keeperJumpHeight = 40;
-        let keeperHasDived = false;
-        let playerKeeperStartY = 0;
-        let diveThreshold = 25;
-        let showHitboxes = false;
-        let keeperAIDirection = 1;
-        let keeperAISpeed = 1.5;
-        let ballStartPosition = { x: 0, y: 0 };
-        let keeperHopOffset = 0;
-        let keeperHopDirection = 1;
-        let keeperOriginalY = 0;
-        let keeperRotation = 0;
-        
+
+        // Skin System Data
+        let playerStats = { totalGoals: 0, totalSaves: 0, currentSkin: 'default', currentGkSkin: 'default' };
+        const images = {};
+        const imageNames = ['theball', 'thegoal', 'thekeeper', 'thekicker'];
+        let imagesLoaded = 0;
+
         const skins = [
-            { id: 'default', name: 'Kylian Mbappé', file: 'thekicker.png', requirement: 0, type: 'kicker' },
-            { id: 'ronaldo', name: 'Cristiano Ronaldo', file: 'Skin/Ronaldo.png', requirement: 0, type: 'kicker' },
-            { id: 'yamal', name: 'Lamine Yamal', file: 'Skin/yamal.png', requirement: 0, type: 'kicker' },
-            { id: 'haaland', name: 'Erling Haaland', file: 'Skin/Erling Haaland.png', requirement: 5, type: 'kicker' },
-            { id: 'salah', name: 'Mohamed Salah', file: 'Skin/mohamed salah.png', requirement: 10, type: 'kicker' },
-            { id: 'fernandes', name: 'Bruno Fernandes', file: 'Skin/Bruno Fernandes.png', requirement: 15, type: 'kicker' },
-            { id: 'lewandowski', name: 'Robert Lewandowski', file: 'Skin/robert lewandowski.png', requirement: 20, type: 'kicker' },
-            { id: 'kane', name: 'Harry Kane', file: 'Skin/harry kane.png', requirement: 25, type: 'kicker' },
-            { id: 'neymar', name: 'Neymar Jr.', file: 'Skin/neymar.png', requirement: 30, type: 'kicker' },
-            { id: 'messi', name: 'Lionel Messi', file: 'Skin/Lionel Messi.png', requirement: 35, type: 'kicker' }
+            { id: 'default', name: 'Kylian Mbappé', file: 'thekicker.png', requirement: 0 },
+            { id: 'ronaldo', name: 'Cristiano Ronaldo', file: 'Skin/Ronaldo.png', requirement: 0 },
+            { id: 'yamal', name: 'Lamine Yamal', file: 'Skin/yamal.png', requirement: 0 },
+            { id: 'haaland', name: 'Erling Haaland', file: 'Skin/Erling Haaland.png', requirement: 5 },
+            { id: 'salah', name: 'Mohamed Salah', file: 'Skin/mohamed salah.png', requirement: 10 },
+            { id: 'messi', name: 'Lionel Messi', file: 'Skin/Lionel Messi.png', requirement: 35 }
         ];
-        
-        function loadPlayerStats() {
-            const savedStats = localStorage.getItem('penaltyKickStats');
-            if (savedStats) {
-                try {
-                    playerStats = JSON.parse(savedStats);
-                } catch (e) {
-                    console.error("Error parsing saved stats:", e);
-                }
-            }
-            updateStatsDisplay();
-        }
-        
-        function savePlayerStats() {
-            localStorage.setItem('penaltyKickStats', JSON.stringify(playerStats));
-            updateStatsDisplay();
-        }
-        
-        function updateStatsDisplay() {
-            const totalGoalsElement = document.getElementById('totalGoals');
-            const totalSavesElement = document.getElementById('totalSaves');
-            const totalSavesGkElement = document.getElementById('totalSavesGk');
-            
-            if (totalGoalsElement && totalSavesElement) {
-                totalGoalsElement.textContent = playerStats.totalGoals;
-                totalSavesElement.textContent = playerStats.totalSaves;
-            }
-            
-            if (totalSavesGkElement) {
-                totalSavesGkElement.textContent = playerStats.totalSaves;
-            }
-        }
-        
-        function createSkinGrid() {
-            skinGrid.innerHTML = '';
-            
-            skins.forEach(skin => {
-                const isUnlocked = playerStats.totalGoals >= skin.requirement;
-                const isActive = playerStats.currentSkin === skin.id;
-                
-                const skinItem = document.createElement('div');
-                skinItem.className = `skin-item ${isUnlocked ? '' : 'locked'} ${isActive ? 'active' : ''}`;
-                skinItem.dataset.skinId = skin.id;
-                
-                const skinPreview = document.createElement('img');
-                skinPreview.className = 'skin-preview';
-                skinPreview.src = skin.file;
-                skinPreview.alt = skin.name;
-                
-                const skinName = document.createElement('div');
-                skinName.className = 'skin-name';
-                skinName.textContent = skin.name;
-                
-                const skinRequirement = document.createElement('div');
-                skinRequirement.className = 'skin-requirement';
-                skinRequirement.textContent = `Required: ${skin.requirement} goals`;
-                
-                skinItem.appendChild(skinPreview);
-                skinItem.appendChild(skinName);
-                skinItem.appendChild(skinRequirement);
-                
-                if (isUnlocked) {
-                    skinItem.addEventListener('click', () => {
-                        selectSkin(skin.id);
-                    });
-                }
-                
-                skinGrid.appendChild(skinItem);
+
+        const gkSkins = [
+            { id: 'default', name: 'Andre Onana', file: 'thekeeper.png', requirement: 0 },
+            { id: 'allisson', name: 'Allisson', file: 'GKSkin/Allisson.png', requirement: 0 },
+            { id: 'courtouis', name: 'Thibaut Courtois', file: 'GKSkin/Courtouis.png', requirement: 3 },
+            { id: 'neuer', name: 'Manuel Neuer', file: 'GKSkin/Manuel Neur.png', requirement: 12 },
+            { id: 'szczesny', name: 'Wojciech Szczęsny', file: 'GKSkin/Szczesny.png', requirement: 15 }
+        ];
+
+        // Core Initialization
+        function loadImages() {
+            imageNames.forEach(name => {
+                images[name] = new Image();
+                images[name].onload = () => {
+                    imagesLoaded++;
+                    if (imagesLoaded === imageNames.length) initGameEngine();
+                };
+                images[name].src = `${name}.png`;
             });
         }
-        
-        function selectSkin(skinId) {
-            playerStats.currentSkin = skinId;
-            savePlayerStats();
-            
-            document.querySelectorAll('.skin-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.skinId === skinId);
-            });
-            
-            const selectedSkin = skins.find(skin => skin.id === skinId);
-            if (selectedSkin) {
-                images.thekicker = new Image();
-                images.thekicker.src = selectedSkin.file;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            scaleX = canvas.width / baseWidth;
+            scaleY = canvas.height / baseHeight;
+            resetPositions();
+        }
+
+        function updateControlOverlayPosition() {
+            const controls = document.getElementById('in-goal-controls');
+            if (controls) {
+                // Add minor padding so targets fit cleanly inside the goal posts
+                const paddingX = 15 * scaleX;
+                const paddingTop = 15 * scaleY;
+                
+                controls.style.left = (sprites.goal.x + paddingX) + 'px';
+                controls.style.top = (sprites.goal.y + paddingTop) + 'px';
+                controls.style.width = (sprites.goal.width - paddingX * 2) + 'px';
+                controls.style.height = (sprites.goal.height - paddingTop) + 'px';
             }
         }
-        
-        function createGkSkinGrid() {
-            const gkSkinGrid = document.getElementById('gkSkinGrid');
-            gkSkinGrid.innerHTML = '';
-            
-            gkSkins.forEach(skin => {
-                const isUnlocked = playerStats.totalSaves >= skin.requirement;
-                const isActive = playerStats.currentGkSkin === skin.id;
-                
-                const skinItem = document.createElement('div');
-                skinItem.className = `skin-item ${isUnlocked ? '' : 'locked'} ${isActive ? 'active' : ''}`;
-                skinItem.dataset.skinId = skin.id;
-                
-                const skinPreview = document.createElement('img');
-                skinPreview.className = 'skin-preview';
-                skinPreview.src = skin.file;
-                skinPreview.alt = skin.name;
-                
-                const skinName = document.createElement('div');
-                skinName.className = 'skin-name';
-                skinName.textContent = skin.name;
-                
-                const skinRequirement = document.createElement('div');
-                skinRequirement.className = 'skin-requirement';
-                skinRequirement.textContent = `Required: ${skin.requirement} saves`;
-                
-                skinItem.appendChild(skinPreview);
-                skinItem.appendChild(skinName);
-                skinItem.appendChild(skinRequirement);
-                
-                if (isUnlocked) {
-                    skinItem.addEventListener('click', () => {
-                        selectGkSkin(skin.id);
-                    });
-                }
-                
-                gkSkinGrid.appendChild(skinItem);
+
+        function resetPositions() {
+            Object.keys(sprites).forEach(key => {
+                sprites[key].x = sprites[key].baseX * scaleX;
+                sprites[key].y = sprites[key].baseY * scaleY;
+                sprites[key].width = sprites[key].baseWidth * scaleX;
+                sprites[key].height = sprites[key].baseHeight * scaleY;
             });
+            ball = { ...sprites.ball };
+            keeper = { ...sprites.keeper };
+            kicker = { ...sprites.kicker };
+            keeperRotation = 0;
+            updateControlOverlayPosition();
         }
-        
-        function selectGkSkin(skinId) {
-            playerStats.currentGkSkin = skinId;
-            savePlayerStats();
-            
-            document.querySelectorAll('#gkSkinGrid .skin-item').forEach(item => {
-                item.classList.toggle('active', item.dataset.skinId === skinId);
-            });
-            
-            const selectedSkin = gkSkins.find(skin => skin.id === skinId);
-            if (selectedSkin) {
-                images.thekeeper = new Image();
-                images.thekeeper.src = selectedSkin.file;
-            }
+
+        // Math & Tweening
+        function lerp(start, end, amt) {
+            return (1 - amt) * start + amt * end;
         }
-        
-        function initSkinSystem() {
-            const skinButton = document.getElementById('skinButton');
-            const skinPanel = document.getElementById('skinPanel');
-            const closeSkinPanel = document.getElementById('closeSkinPanel');
+
+        // Gameplay Logic
+        function updateScoreboardUI() {
+            document.getElementById('score-a').textContent = scoreA;
+            document.getElementById('score-b').textContent = scoreB;
             
-            const gkSkinButton = document.getElementById('gkSkinButton');
-            const gkSkinPanel = document.getElementById('gkSkinPanel');
-            const closeGkSkinPanel = document.getElementById('closeGkSkinPanel');
-            
-            if (skinButton && skinPanel && closeSkinPanel) {
-                skinButton.addEventListener('click', () => {
-                    const isVisible = skinPanel.style.display === 'block';
-                    skinPanel.style.display = isVisible ? 'none' : 'block';
-                    
-                    // Close GK skin panel if open
-                    if (gkSkinPanel) gkSkinPanel.style.display = 'none';
-                    
-                    if (!isVisible) {
-                        createSkinGrid();
+            let statusText = isSuddenDeath ? `Sudden Death - Round ${currentRound}` : `Shootout - Round ${currentRound}`;
+            document.getElementById('tv-status').textContent = statusText;
+
+            const renderDots = (historyArray, elementId, kicksTaken) => {
+                const container = document.getElementById(elementId);
+                container.innerHTML = '';
+                
+                // Determine how many dots to show. Base 5, extend if sudden death
+                let displayCount = isSuddenDeath ? historyArray.length + 1 : 5;
+                
+                for(let i=0; i<displayCount; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    if (i < historyArray.length) {
+                        if (historyArray[i] === 'goal') dot.classList.add('goal');
+                        else dot.classList.add('miss'); // red for both miss and save
                     }
-                });
+                    container.appendChild(dot);
+                }
+            };
+
+            renderDots(historyA, 'history-a', kicksA);
+            renderDots(historyB, 'history-b', kicksB);
+        }
+
+        function hideAllPanels() {
+            document.getElementById('controls-kicker').style.display = 'none';
+            document.getElementById('controls-keeper').style.display = 'none';
+            document.getElementById('game-over-panel').style.display = 'none';
+            document.getElementById('instruction-text').style.display = 'none';
+        }
+
+        function startRoundFlow() {
+            resetPositions();
+            animProgress = 0;
+            hideAllPanels();
+            updateScoreboardUI();
+
+            // Alternate turns: Player Kicks -> AI Kicks
+            if (kicksA === kicksB) {
+                gameState = 'PLAYER_KICK';
+                document.getElementById('controls-kicker').style.display = 'grid';
+                document.getElementById('instruction-text').textContent = 'CHOOSE TARGET';
+                document.getElementById('instruction-text').style.display = 'block';
+            } else {
+                gameState = 'PLAYER_DIVE';
+                document.getElementById('controls-keeper').style.display = 'grid';
+                document.getElementById('instruction-text').textContent = 'CHOOSE DIVE';
+                document.getElementById('instruction-text').style.display = 'block';
+            }
+        }
+
+        function takeKickAction(zone) {
+            hideAllPanels();
+            const aiDiveOptions = ['L', 'C', 'R'];
+            const aiDive = aiDiveOptions[Math.floor(Math.random() * 3)];
+            resolveShootoutAction(zone, aiDive, true);
+        }
+
+        function takeDiveAction(diveZone) {
+            hideAllPanels();
+            const aiKickOptions = ['TL', 'TC', 'TR', 'BL', 'BC', 'BR'];
+            const aiKick = aiKickOptions[Math.floor(Math.random() * 6)];
+            resolveShootoutAction(aiKick, diveZone, false);
+        }
+
+        function resolveShootoutAction(kickZone, diveZone, isPlayerKicking) {
+            const isMiss = Math.random() < 0.08; // 8% chance to just miss entirely
+            
+            if (isMiss) {
+                kickResult = 'miss';
+                resultMessageText = "MISSED!";
+            } else {
+                // Determine if save
+                let kickDir = kickZone.includes('L') ? 'L' : (kickZone.includes('R') ? 'R' : 'C');
+                if (kickDir === diveZone) {
+                    kickResult = 'save';
+                    resultMessageText = "SAVED!";
+                } else {
+                    kickResult = 'goal';
+                    resultMessageText = "GOAL!";
+                }
+            }
+
+            setupAnimationTargets(kickZone, diveZone, isMiss);
+            gameState = 'ANIMATING';
+        }
+
+        function setupAnimationTargets(kickZone, diveZone, isMiss) {
+            ballStart = { x: ball.x, y: ball.y };
+            keeperStart = { x: keeper.x, y: keeper.y };
+            
+            // Goal Base Info
+            const gbCenterX = sprites.goal.baseX + sprites.goal.baseWidth / 2;
+            const gbY = sprites.goal.baseY;
+
+            // Ball Target Math (Base coords, then scaled)
+            let btx = gbCenterX;
+            let bty = gbY + 80;
+
+            if (kickZone.includes('L')) btx = gbCenterX - 140;
+            if (kickZone.includes('R')) btx = gbCenterX + 140;
+            if (kickZone.includes('T')) bty = gbY + 30;
+            if (kickZone.includes('B')) bty = gbY + 130;
+
+            if (isMiss) {
+                if (kickZone.includes('T')) bty = gbY - 40; // Over
+                if (kickZone.includes('L')) btx = sprites.goal.baseX - 40; // Wide Left
+                if (kickZone.includes('R')) btx = sprites.goal.baseX + sprites.goal.baseWidth + 40; // Wide Right
+            }
+
+            ballTarget = { x: btx * scaleX, y: bty * scaleY };
+
+            // Keeper Target Math
+            let ktx = gbCenterX - (sprites.keeper.baseWidth/2);
+            let kty = gbY + 50;
+            keeperTargetRot = 0;
+            
+            const isTopKick = kickZone.includes('T');
+
+            if (diveZone === 'L') {
+                ktx -= 140;
+                if (isTopKick) {
+                    kty -= 25; // Jump up for top corner
+                    keeperTargetRot = -Math.PI / 6;
+                } else {
+                    kty += 60; // Dive low for bottom corner
+                    keeperTargetRot = -Math.PI / 2;
+                }
+            } else if (diveZone === 'R') {
+                ktx += 140;
+                if (isTopKick) {
+                    kty -= 25; // Jump up for top corner
+                    keeperTargetRot = Math.PI / 6;
+                } else {
+                    kty += 60; // Dive low for bottom corner
+                    keeperTargetRot = Math.PI / 2;
+                }
+            } else {
+                // Stay Center
+                if (isTopKick) {
+                    kty -= 40; // Leap straight up
+                } else {
+                    kty += 30; // Squat low
+                }
+            }
+
+            keeperTarget = { x: ktx * scaleX, y: kty * scaleY };
+            
+            // Arc logic for ball to give illusion of height
+            ballStart.dist = Math.abs(ballTarget.y - ballStart.y);
+
+            // Save Deflection Math
+            if (kickResult === 'save') {
+                // Intercept point before it hits the back of the net
+                ballDeflectStart = {
+                    x: lerp(ballStart.x, ballTarget.x, 0.75),
+                    y: lerp(ballStart.y, ballTarget.y, 0.75)
+                };
                 
-                closeSkinPanel.addEventListener('click', () => {
-                    skinPanel.style.display = 'none';
-                });
+                // Fling the ball randomly back out onto the pitch
+                let flingX = (Math.random() > 0.5 ? 1 : -1) * (150 + Math.random() * 150);
+                let flingY = 200 + Math.random() * 150; 
+                ballDeflectTarget = {
+                    x: ballDeflectStart.x + flingX * scaleX,
+                    y: ballDeflectStart.y + flingY * scaleY
+                };
+            }
+        }
+
+        function processResult() {
+            const isPlayerKicking = kicksA === kicksB; // If equal, Player just kicked
+
+            if (isPlayerKicking) {
+                kicksA++;
+                historyA.push(kickResult);
+                if (kickResult === 'goal') {
+                    scoreA++;
+                    playerStats.totalGoals++;
+                }
             } else {
-                console.warn("Skin system UI elements not found!");
+                kicksB++;
+                historyB.push(kickResult);
+                if (kickResult === 'goal') {
+                    scoreB++;
+                } else if (kickResult === 'save') {
+                    playerStats.totalSaves++; // Player as GK saved it
+                }
             }
             
-            if (gkSkinButton && gkSkinPanel && closeGkSkinPanel) {
-                gkSkinButton.addEventListener('click', () => {
-                    const isVisible = gkSkinPanel.style.display === 'block';
-                    gkSkinPanel.style.display = isVisible ? 'none' : 'block';
-                    
-                    // Close player skin panel if open
-                    if (skinPanel) skinPanel.style.display = 'none';
-                    
-                    if (!isVisible) {
-                        createGkSkinGrid();
-                    }
-                });
-                
-                closeGkSkinPanel.addEventListener('click', () => {
-                    gkSkinPanel.style.display = 'none';
-                });
+            savePlayerStats();
+            updateScoreboardUI();
+
+            const winState = checkWinCondition();
+            if (winState) {
+                gameState = 'GAME_OVER';
+                const goPanel = document.getElementById('game-over-panel');
+                const goDesc = document.getElementById('go-desc');
+                goDesc.textContent = winState === 'A' ? "🏆 You Won the Shootout! 🏆" : "❌ AI Won the Shootout ❌";
+                goDesc.style.color = winState === 'A' ? "#28a745" : "#dc3545";
+                goPanel.style.display = 'block';
             } else {
-                console.warn("GK Skin system UI elements not found!");
+                // If both have kicked, advance round
+                if (kicksA === kicksB) {
+                    currentRound++;
+                    if (currentRound > 5) isSuddenDeath = true;
+                }
+                setTimeout(startRoundFlow, 500);
             }
         }
-        
-        function checkFootCollision(kickerSprite, ballSprite) {
-            const footCenterX = kickerSprite.x + kickerSprite.width / 2;
-            const footCenterY = kickerSprite.y + kickerSprite.height * 0.9;
-            const footRadius = kickerSprite.width * 0.2;
-            
-            const ballCenterX = ballSprite.x + ballSprite.width / 2;
-            const ballCenterY = ballSprite.y + ballSprite.height / 2;
-            
-            const distanceX = footCenterX - ballCenterX;
-            const distanceY = footCenterY - ballCenterY;
-            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-            
-            return distance < footRadius;
+
+        function checkWinCondition() {
+            let remainingA = Math.max(5 - kicksA, 0);
+            let remainingB = Math.max(5 - kicksB, 0);
+
+            // Early win logic (Base 5 rounds)
+            if (!isSuddenDeath) {
+                if (scoreA > scoreB + remainingB) return 'A';
+                if (scoreB > scoreA + remainingA) return 'B';
+            }
+
+            // Sudden Death Logic (must be equal kicks taken)
+            if (kicksA >= 5 && kicksB >= 5 && kicksA === kicksB) {
+                if (scoreA > scoreB) return 'A';
+                if (scoreB > scoreA) return 'B';
+            }
+
+            return null; // Continue
         }
-        
-        function kickBall() {
-        const kickerCenterX = kicker.x + kicker.width / 2;
-        const ballCenterX = ball.x + ball.width / 2;
-        const horizontalDirection = (ballCenterX - kickerCenterX) / 100;
-        
-        ballVelocity.x = horizontalDirection * 25;
-        ballVelocity.y = -18;
-        ballInMotion = true;
-        
-        if (Math.random() < 0.15) {
-            ballVelocity.curve = (Math.random() - 0.5) * 0.5;
+
+        function restartGame() {
+            kicksA = 0; kicksB = 0;
+            scoreA = 0; scoreB = 0;
+            historyA = []; historyB = [];
+            currentRound = 1;
+            isSuddenDeath = false;
+            startRoundFlow();
         }
-        
-        if (gameState === 'TEAM_A_KICK' && !keeperHasDived) {
-            console.log('IMMEDIATE REACTION: Keeper diving as ball is kicked!');
-            startKeeperDive();
-        }
-    }
-        
-        function startKeeperDive() {
-            if (keeperHasDived) return;
-            
-            keeperDiving = true;
-            keeperHasDived = true;
-            
-            const ballCenterX = ball.x + ball.width / 2;
-            const goalCenterX = sprites.goal.x + sprites.goal.width / 2;
-            
-            const diveChoice = Math.random();
-            const diveDistance = 270;
-            const diveYOffset = 100;
-            
-            if (diveChoice < 0.33) {
-                keeper.x -= diveDistance;
-                keeper.y += diveYOffset;
-                keeperRotation = -Math.PI / 2;
-                console.log('Keeper diving LEFT!');
-            } else if (diveChoice < 0.66) {
-                keeper.y += diveYOffset / 2;
-                keeperRotation = 0;
-                console.log('Keeper staying CENTER!');
-            } else {
-                keeper.x += diveDistance;
-                keeper.y += diveYOffset;
-                keeperRotation = Math.PI / 2;
-                console.log('Keeper diving RIGHT!');
-            }
-            
-            keeper.x = Math.max(sprites.goal.x - 100, Math.min(keeper.x, sprites.goal.x + sprites.goal.width - keeper.width + 100));
-            keeper.y = Math.max(sprites.goal.y, Math.min(keeper.y, sprites.goal.y + sprites.goal.height + 50));
-            
-            console.log(`Keeper action! New position X: ${keeper.x}, Y: ${keeper.y}`);
-        }
-        
-        function updateKeeper() {
-        if (!ballInMotion && !keeperHasDived && gameState === 'TEAM_A_KICK') {
-            const goalCenterX = sprites.goal.x + sprites.goal.width / 2 - keeper.width / 2;
-            const distanceFromCenter = keeper.x - goalCenterX;
-            
-            if (Math.abs(distanceFromCenter) < 80) {
-                keeper.x += keeperAIDirection * keeperAISpeed;
-            } else {
-                keeperAIDirection = distanceFromCenter > 0 ? -1 : 1;
-                keeper.x += keeperAIDirection * keeperAISpeed;
-            }
-            
-            if (Math.random() < 0.05) {
-                keeperAIDirection *= -1;
-            }
-            
-            keeperHopOffset += keeperHopDirection * 0.4;
-            if (keeperHopOffset > 6) {
-                keeperHopDirection = -1;
-            } else if (keeperHopOffset < -2) {
-                keeperHopDirection = 1;
-            }
-            keeper.y = keeperOriginalY + keeperHopOffset;
-            
-            // NEW CODE: Check if foot is touching ball - dive immediately
-            if (checkFootCollision(kicker, ball) && !keeperDiving) {
-                console.log('Foot touching ball! AI keeper reacting immediately!');
-                startKeeperDive();
-                return;
-            }
-            
-            // Existing code as fallback
-            const ballMoved = Math.abs(ball.x - ballStartPosition.x) > 0.1 || Math.abs(ball.y - ballStartPosition.y) > 0.1;
-            if (ballMoved && !keeperDiving) {
-                console.log('Ball moved! AI keeper diving...');
-                startKeeperDive();
-            }
-        }
-    }
-        
-        function drawSprite(sprite, customImage = null) {
-            const img = customImage || images[sprite.image];
+
+        // Drawing & Graphics
+        function drawSprite(sprite, rot = 0) {
+            const img = images[sprite.image];
             if (img && img.complete) {
-                if (sprite === keeper && keeperDiving && keeperRotation !== 0) {
+                if (rot !== 0) {
                     ctx.save();
-                    const centerX = sprite.x + sprite.width / 2;
-                    const centerY = sprite.y + sprite.height / 2;
-                    ctx.translate(centerX, centerY);
-                    ctx.rotate(keeperRotation);
+                    const cx = sprite.x + sprite.width / 2;
+                    const cy = sprite.y + sprite.height / 2;
+                    ctx.translate(cx, cy);
+                    ctx.rotate(rot);
                     ctx.drawImage(img, -sprite.width / 2, -sprite.height / 2, sprite.width, sprite.height);
                     ctx.restore();
                 } else {
                     ctx.drawImage(img, sprite.x, sprite.y, sprite.width, sprite.height);
                 }
             } else {
-                ctx.fillStyle = sprite.image === 'theball' ? '#000' : 
-                               sprite.image === 'thekeeper' ? '#FF0000' : 
-                               sprite.image === 'thekicker' ? '#0000FF' : '#FFF';
-                
-                if (sprite === keeper && keeperDiving && keeperRotation !== 0) {
-                    ctx.save();
-                    const centerX = sprite.x + sprite.width / 2;
-                    const centerY = sprite.y + sprite.height / 2;
-                    ctx.translate(centerX, centerY);
-                    ctx.rotate(keeperRotation);
-                    ctx.fillRect(-sprite.width / 2, -sprite.height / 2, sprite.width, sprite.height);
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(-sprite.width / 2, -sprite.height / 2, sprite.width, sprite.height);
-                    ctx.restore();
-                } else {
-                    ctx.fillRect(sprite.x, sprite.y, sprite.width, sprite.height);
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(sprite.x, sprite.y, sprite.width, sprite.height);
-                }
+                ctx.fillStyle = sprite.image === 'theball' ? '#FFF' : '#333';
+                ctx.fillRect(sprite.x, sprite.y, sprite.width, sprite.height);
             }
         }
-        
-        function drawGoal() {
-            if (images.thegoal && images.thegoal.complete) {
-                ctx.drawImage(images.thegoal, sprites.goal.x, sprites.goal.y, sprites.goal.width, sprites.goal.height);
-            } else {
-                ctx.fillStyle = '#FFF';
-                ctx.fillRect(sprites.goal.x, sprites.goal.y, sprites.goal.width, sprites.goal.height);
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 5;
-                ctx.strokeRect(sprites.goal.x, sprites.goal.y, sprites.goal.width, sprites.goal.height);
-                
-                ctx.fillStyle = '#FFF';
-                ctx.fillRect(sprites.goal.x - 10, sprites.goal.y, 10, sprites.goal.height);
-                ctx.fillRect(sprites.goal.x + sprites.goal.width, sprites.goal.y, 10, sprites.goal.height);
-                ctx.fillRect(sprites.goal.x - 10, sprites.goal.y - 10, sprites.goal.width + 20, 10);
-            }
-        }
-        
-        function checkGoal() {
-            const goalHitboxX = sprites.goal.x + sprites.goal.scaledHitboxOffsetX;
-            const goalHitboxY = sprites.goal.y + sprites.goal.scaledHitboxOffsetY;
-            
-            return ball.x + ball.width > goalHitboxX && 
-                   ball.x < goalHitboxX + sprites.goal.scaledHitboxWidth &&
-                   ball.y + ball.height > goalHitboxY && 
-                   ball.y < goalHitboxY + sprites.goal.scaledHitboxHeight;
-        }
-        
-        function checkCollision(obj1, obj2) {
-            let obj1X = obj1.x, obj1Y = obj1.y, obj1W = obj1.width, obj1H = obj1.height;
-            let obj2X = obj2.x, obj2Y = obj2.y, obj2W = obj2.width, obj2H = obj2.height;
-            
-            if (obj2 === keeper) {
-                obj2X += sprites.keeper.scaledHitboxOffsetX;
-                obj2Y += sprites.keeper.scaledHitboxOffsetY;
-                obj2W = sprites.keeper.scaledHitboxWidth;
-                obj2H = sprites.keeper.scaledHitboxHeight;
-            }
-            
-            return obj1X < obj2X + obj2W &&
-                   obj1X + obj1W > obj2X &&
-                   obj1Y < obj2Y + obj2H &&
-                   obj1Y + obj1H > obj2Y;
-        }
-        
-        function drawHitboxes() {
-            ctx.save();
-            ctx.lineWidth = 2;
-            
-            ctx.strokeStyle = '#00FF00';
-            ctx.strokeRect(ball.x, ball.y, ball.width, ball.height);
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
-            ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
-            
-            const goalHitboxX = sprites.goal.x + sprites.goal.scaledHitboxOffsetX;
-            const goalHitboxY = sprites.goal.y + sprites.goal.scaledHitboxOffsetY;
-            ctx.strokeStyle = '#0000FF';
-            ctx.strokeRect(goalHitboxX, goalHitboxY, sprites.goal.scaledHitboxWidth, sprites.goal.scaledHitboxHeight);
-            ctx.fillStyle = 'rgba(0, 0, 255, 0.1)';
-            ctx.fillRect(goalHitboxX, goalHitboxY, sprites.goal.scaledHitboxWidth, sprites.goal.scaledHitboxHeight);
-            
-            const keeperHitboxX = keeper.x + sprites.keeper.scaledHitboxOffsetX;
-            const keeperHitboxY = keeper.y + sprites.keeper.scaledHitboxOffsetY;
-            ctx.strokeStyle = '#FF0000';
-            ctx.strokeRect(keeperHitboxX, keeperHitboxY, sprites.keeper.scaledHitboxWidth, sprites.keeper.scaledHitboxHeight);
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
-            ctx.fillRect(keeperHitboxX, keeperHitboxY, sprites.keeper.scaledHitboxWidth, sprites.keeper.scaledHitboxHeight);
-            
-            if (!ballInMotion) {
-                ctx.strokeStyle = '#FFFF00';
-                ctx.strokeRect(kicker.x, kicker.y, kicker.width, kicker.height);
-                ctx.fillStyle = 'rgba(255, 255, 0, 0.1)';
-                ctx.fillRect(kicker.x, kicker.y, kicker.width, kicker.height);
-                
-                const footCenterX = kicker.x + kicker.width / 2;
-                const footCenterY = kicker.y + kicker.height * 0.9;
-                const footRadius = kicker.width * 0.2;
-                
-                ctx.strokeStyle = '#FF8800';
-                ctx.beginPath();
-                ctx.arc(footCenterX, footCenterY, footRadius, 0, 2 * Math.PI);
-                ctx.stroke();
-                ctx.fillStyle = 'rgba(255, 136, 0, 0.2)';
-                ctx.fill();
-                
-                const kickerCenterX = kicker.x + kicker.width / 2;
-                const ballCenterX = ball.x + ball.width / 2;
-                const kickDirection = ballCenterX - kickerCenterX;
-                
-                if (Math.abs(kickDirection) > 10) {
-                    ctx.strokeStyle = kickDirection < 0 ? '#FF0000' : '#00FF00';
-                    ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    const arrowStartX = ball.x + ball.width / 2;
-                    const arrowStartY = ball.y;
-                    const arrowLength = 80;
-                    const arrowEndX = arrowStartX + (kickDirection > 0 ? arrowLength : -arrowLength);
-                    const arrowEndY = arrowStartY - 60;
-                    
-                    ctx.moveTo(arrowStartX, arrowStartY);
-                    ctx.lineTo(arrowEndX, arrowEndY);
-                    ctx.stroke();
-                    
-                    const headSize = 15;
-                    ctx.beginPath();
-                    if (kickDirection > 0) {
-                        ctx.moveTo(arrowEndX, arrowEndY);
-                        ctx.lineTo(arrowEndX - headSize, arrowEndY - headSize);
-                        ctx.moveTo(arrowEndX, arrowEndY);
-                        ctx.lineTo(arrowEndX - headSize, arrowEndY + headSize);
-                    } else {
-                        ctx.moveTo(arrowEndX, arrowEndY);
-                        ctx.lineTo(arrowEndX + headSize, arrowEndY - headSize);
-                        ctx.moveTo(arrowEndX, arrowEndY);
-                        ctx.lineTo(arrowEndX + headSize, arrowEndY + headSize);
-                    }
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = kickDirection < 0 ? '#FF0000' : '#00FF00';
-                    ctx.font = '16px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(kickDirection > 0 ? 'KICK RIGHT' : 'KICK LEFT', arrowEndX, arrowEndY - 20);
-                }
-            }
-            
-            ctx.restore();
-        }
-        
+
         function drawBallShadow() {
             ctx.save();
+            const sx = ball.x + ball.width / 2;
+            const sy = (ball.groundY !== undefined ? ball.groundY : ball.y) + ball.height;
+            const sw = ball.width * 0.8;
+            const sh = ball.height * 0.3;
             
-            const shadowOffsetX = ball.x + ball.width / 2;
-            const shadowOffsetY = ball.y + ball.height + 0;
-            const shadowWidth = ball.width * 0.8;
-            const shadowHeight = ball.height * 0.3;
-            
-            const gradient = ctx.createRadialGradient(
-                shadowOffsetX, shadowOffsetY, 0,
-                shadowOffsetX, shadowOffsetY, shadowWidth / 2
-            );
-            gradient.addColorStop(0, 'rgba(0, 0, 0, 0.4)');
+            const gradient = ctx.createRadialGradient(sx, sy, 0, sx, sy, sw / 2);
+            gradient.addColorStop(0, 'rgba(0, 0, 0, 0.5)');
             gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             
             ctx.fillStyle = gradient;
-            
             ctx.beginPath();
-            ctx.ellipse(
-                shadowOffsetX, 
-                shadowOffsetY, 
-                shadowWidth / 2, 
-                shadowHeight / 2, 
-                0, 0, 2 * Math.PI
-            );
+            ctx.ellipse(sx, sy, sw / 2, sh / 2, 0, 0, 2 * Math.PI);
             ctx.fill();
-            
             ctx.restore();
         }
-        
+
         function draw() {
-            ctx.fillStyle = '#228B22';
+            // Pitch
+            ctx.fillStyle = '#2E7D32'; // Darker grass
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            const penaltyBoxWidth = 800 * scaleX;
-            const penaltyBoxHeight = 150 * scaleY;
-            const penaltyBoxX = (canvas.width - penaltyBoxWidth) / 2;
-            const penaltyBoxY = 270 * scaleY;
+            // Penalty Box lines
+            const pboxW = 800 * scaleX;
+            const pboxH = 180 * scaleY;
+            const pboxX = (canvas.width - pboxW) / 2;
+            const pboxY = 270 * scaleY;
             
-            ctx.strokeStyle = '#FFF';
-            ctx.lineWidth = 6 * Math.min(scaleX, scaleY);
-            ctx.strokeRect(penaltyBoxX, penaltyBoxY, penaltyBoxWidth, penaltyBoxHeight);
+            ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            ctx.lineWidth = 4 * Math.min(scaleX, scaleY);
+            ctx.strokeRect(pboxX, pboxY, pboxW, pboxH);
             
-            drawGoal();
+            // Penalty Spot
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, sprites.kicker.baseY * scaleY - 20, 5 * scaleX, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+            ctx.fill();
+
+            // Goal
+            drawSprite(sprites.goal);
             
-            drawBallShadow();
+            // Shadow
+            if (gameState === 'ANIMATING' || gameState === 'PLAYER_KICK' || gameState === 'PLAYER_DIVE') {
+                 drawBallShadow();
+            }
+
+            // Entities
+            drawSprite(keeper, keeperRotation);
             
+            // Shrink ball slightly as it gets further away
+            let scaleP = animProgress;
+            if (kickResult === 'save' && animProgress > 0.75) {
+                scaleP = 0.75 - (animProgress - 0.75) * 0.5; // Grow slightly as it deflects back
+            }
+            const progressScale = (gameState === 'ANIMATING' || gameState === 'RESULT') ? (1 - scaleP * 0.3) : 1;
+            
+            const tempW = ball.width;
+            const tempH = ball.height;
+            ball.width *= progressScale;
+            ball.height *= progressScale;
             drawSprite(ball);
-            
-            drawSprite(keeper);
-            
-            if (!ballInMotion) {
+            ball.width = tempW;
+            ball.height = tempH;
+
+            // Only show kicker before kick
+            if (gameState === 'PLAYER_KICK' || gameState === 'PLAYER_DIVE') {
                 drawSprite(kicker);
             }
-            
-            if (showHitboxes) {
-                drawHitboxes();
-            }
         }
-        
-        function updateGameInfo() {
-            const info = document.getElementById('gameInfo');
-            const instructions = document.getElementById('instructions');
+
+        function showResultText(text, colorClass) {
+            const overlay = document.getElementById('result-overlay');
+            overlay.textContent = text;
+            overlay.style.color = kickResult === 'goal' ? '#4CAF50' : '#F44336';
+            overlay.style.opacity = 1;
             
-            switch(gameState) {
-                case 'TEAM_A_KICK':
-                    info.textContent = `Round ${round} - Your turn to kick! (vs AI Goalkeeper)`;
-                    instructions.textContent = 'Drag kicker LEFT of ball = kick RIGHT, RIGHT of ball = kick LEFT';
-                    break;
-                case 'TEAM_A_GK':
-                    info.textContent = `Round ${round} - Your turn to defend! (vs AI Kicker)`;
-                    instructions.textContent = 'Drag keeper DOWN to dive! Position LEFT/CENTER/RIGHT first!';
-                    break;
-                case 'TEAM_B_KICK':
-                    info.textContent = `Round ${round} - Unused state`;
-                    instructions.textContent = 'This should not appear';
-                    break;
-                case 'TEAM_B_GK':
-                    info.textContent = `Round ${round} - Unused state`;
-                    instructions.textContent = 'This should not appear';
-                    break;
-                case 'GAME_OVER':
-                    const winner = scoreA > scoreB ? 'You' : scoreB > scoreA ? 'AI' : 'Nobody';
-                    info.textContent = `Game Over! ${winner} wins!`;
-                    instructions.textContent = 'Refresh to play again!';
-                    break;
-            }
-        }
-        
-        function initGame() {
-            try {
-                loadPlayerStats();
-            } catch (e) {
-                console.error("Error loading player stats:", e);
-            }
-            
-            resizeCanvas();
-            document.getElementById('instructions').textContent = 'Drag the kicker to the ball to shoot!';
-            updateGameInfo();
-            ballStartPosition = { x: sprites.ball.x, y: sprites.ball.y };
-            keeperOriginalY = sprites.keeper.y;
-            
-            initSkinSystem();
-            
-            gameLoop();
-        }
-        
-        function resetPositions() {
-            ball = { ...sprites.ball };
-            keeper = { ...sprites.keeper };
-            kicker = { ...sprites.kicker };
-            ballVelocity = { x: 0, y: 0 };
-            ballInMotion = false;
-            kickTimer = 0;
-            gkTimer = 0;
-            keeperDiving = false;
-            keeperDiveDirection = { x: 0, y: 0 };
-            keeperHasDived = false;
-            playerKeeperStartY = keeper.y;
-            keeperAIDirection = Math.random() > 0.5 ? 1 : -1;
-            ballStartPosition = { x: ball.x, y: ball.y };
-            keeperHopOffset = 0;
-            keeperOriginalY = keeper.y;
-            keeperRotation = 0;
-        }
-        
-        function nextTurn() {
             setTimeout(() => {
-                switch(gameState) {
-                    case 'TEAM_A_KICK':
-                        gameState = 'TEAM_A_GK';
-                        break;
-                    case 'TEAM_A_GK':
-                        round++;
-                        if (round > maxRounds) {
-                            gameState = 'GAME_OVER';
-                        } else {
-                            gameState = 'TEAM_A_KICK';
-                        }
-                        break;
-                }
-                resetPositions();
-                updateGameInfo();
-            }, 2000);
+                overlay.style.opacity = 0;
+            }, 1500);
         }
-        
-        function simulateKick() {
-            const angle = (Math.random() - 0.5) * 3.0;
-            const power = (12 + Math.random() * 6) * Math.min(scaleX, scaleY);
-            
-            ballVelocity.x = Math.sin(angle) * power;
-            ballVelocity.y = -power;
-            ballInMotion = true;
-            
-            
-            if (Math.random() < 0.1) {
-                ballVelocity.curve = (Math.random() - 0.5) * 0.5;
-            }
-        }
-        
-        function updateBall() {
-            if (!ballInMotion) return;
-            
-            ball.x += ballVelocity.x;
-            ball.y += ballVelocity.y;
-            
-            if (ballVelocity.curve) {
-                ballVelocity.x += ballVelocity.curve;
-            }
-            
-            if (!keeperHasDived && gameState === 'TEAM_A_GK') {
-                const ballToGoalDistance = ball.y - (sprites.goal.y + sprites.goal.height);
-                if (ballToGoalDistance < 150) {
-                    keeperDiving = true;
-                    keeperHasDived = true;
-                    keeperRotation = 0;
-                    console.log('Emergency dive! Player waited too long.');
-                }
-            }
-            
-            if (checkGoal()) {
-                ballInMotion = false;
-                if (gameState === 'TEAM_A_KICK') {
-                    scoreA++;
-                    document.getElementById('scoreA').textContent = scoreA;
-                    console.log('Player scored!');
-                    
-                    try {
-                        playerStats.totalGoals++;
-                        savePlayerStats();
-                        checkUnlocks();
-                    } catch (e) {
-                        console.error("Error updating player stats:", e);
-                    }
-                } else if (gameState === 'TEAM_A_GK') {
-                    scoreB++;
-                    document.getElementById('scoreB').textContent = scoreB;
-                    console.log('AI scored!');
-                }
-                nextTurn();
-                return;
-            }
-            
-            if (checkCollision(ball, keeper)) {
-                ballInMotion = false;
-                console.log('Goalkeeper saved the ball!');
-                
-                if (gameState === 'TEAM_A_GK') {
-                    playerStats.totalSaves++;
-                    savePlayerStats();
-                    checkUnlocks();
-                }
-                
-                nextTurn();
-                return;
-            }
-            
-            if (ball.x < 0 || ball.x > canvas.width - ball.width || 
-                ball.y < 0 || ball.y > canvas.height - ball.height) {
-                ballInMotion = false;
-                console.log('Ball went out of bounds!');
-                nextTurn();
-            }
-        }
-        
-        function checkUnlocks() {
-            // Check player skin unlocks
-            const newUnlocks = skins.filter(skin => 
-                playerStats.totalGoals >= skin.requirement && 
-                !localStorage.getItem(`skin_${skin.id}_unlocked`)
-            );
-            
-            if (newUnlocks.length > 0) {
-                newUnlocks.forEach(skin => {
-                    localStorage.setItem(`skin_${skin.id}_unlocked`, 'true');
-                    alert(`🎉 New player skin unlocked: ${skin.name}! 🎉`);
-                });
-            }
-            
-            // Check GK skin unlocks
-            const newGkUnlocks = gkSkins.filter(skin => 
-                playerStats.totalSaves >= skin.requirement && 
-                !localStorage.getItem(`gkskin_${skin.id}_unlocked`)
-            );
-            
-            if (newGkUnlocks.length > 0) {
-                newGkUnlocks.forEach(skin => {
-                    localStorage.setItem(`gkskin_${skin.id}_unlocked`, 'true');
-                    alert(`🎉 New goalkeeper skin unlocked: ${skin.name}! 🎉`);
-                });
-            }
-        }
-        
+
         function gameLoop() {
-            if (gameState === 'TEAM_A_GK' && !ballInMotion) {
-                gkTimer++;
-                if (gkTimer > 300) {
-                    simulateKick();
-                    gkTimer = 0;
+            if (gameState === 'ANIMATING') {
+                animProgress += 0.035; // Animation speed
+                if (animProgress >= 1) {
+                    animProgress = 1;
+                    gameState = 'RESULT';
+                    showResultText(resultMessageText);
+                    setTimeout(processResult, 2000);
                 }
+
+                // Easing out interpolation
+                const easeOutQuad = t => t * (2 - t);
+                const easedProgress = easeOutQuad(animProgress);
+
+                if (kickResult === 'save') {
+                    if (animProgress < 0.75) {
+                        // Flying toward the goal
+                        let p = animProgress / 0.75;
+                        ball.x = lerp(ballStart.x, ballDeflectStart.x, p);
+                        const baseY = lerp(ballStart.y, ballDeflectStart.y, p);
+                        const arcHeight = 80 * scaleY;
+                        ball.y = baseY - Math.sin(p * Math.PI * 0.5) * arcHeight;
+                        ball.groundY = baseY;
+                    } else {
+                        // Flung away from the keeper
+                        let p = (animProgress - 0.75) / 0.25;
+                        let bounceEase = p * (2 - p); // ease out bounce
+                        ball.x = lerp(ballDeflectStart.x, ballDeflectTarget.x, bounceEase);
+                        const baseDeflectY = lerp(ballDeflectStart.y, ballDeflectTarget.y, bounceEase);
+                        const deflectArc = 60 * scaleY;
+                        ball.y = baseDeflectY - Math.sin(p * Math.PI) * deflectArc;
+                        ball.groundY = baseDeflectY;
+                    }
+                } else {
+                    ball.x = lerp(ballStart.x, ballTarget.x, animProgress); // linear x
+                    
+                    // Add an arc to the ball Y
+                    const baseY = lerp(ballStart.y, ballTarget.y, animProgress);
+                    const arcHeight = 80 * scaleY;
+                    ball.y = baseY - Math.sin(animProgress * Math.PI) * arcHeight;
+                    ball.groundY = baseY;
+                }
+
+                keeper.x = lerp(keeperStart.x, keeperTarget.x, easedProgress);
+                keeper.y = lerp(keeperStart.y, keeperTarget.y, easedProgress);
+                keeperRotation = lerp(0, keeperTargetRot, easedProgress);
             }
-            
-            updateBall();
-            updateKeeper();
+
             draw();
             requestAnimationFrame(gameLoop);
         }
-        
-        canvas.addEventListener('mousedown', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            
-            if (ballInMotion) return;
-            
-            if (gameState === 'TEAM_A_KICK') {
-                if (mouseX >= kicker.x && mouseX <= kicker.x + kicker.width &&
-                    mouseY >= kicker.y && mouseY <= kicker.y + kicker.height) {
-                    isDragging = true;
-                    dragObject = 'kicker';
-                    dragStart = { x: mouseX, y: mouseY };
-                }
-            } else if (gameState === 'TEAM_A_GK') {
-                if (mouseX >= keeper.x && mouseX <= keeper.x + keeper.width &&
-                    mouseY >= keeper.y && mouseY <= keeper.y + keeper.height) {
-                    isDragging = true;
-                    dragObject = 'keeper';
-                    dragStart = { x: mouseX, y: mouseY };
-                    playerKeeperStartY = keeper.y;
-                }
+
+        // Data Storage & Skins
+        function loadPlayerStats() {
+            const saved = localStorage.getItem('penaltyStatsV2');
+            if (saved) {
+                try { playerStats = JSON.parse(saved); } catch (e) { }
             }
-        });
-        
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            
-            if (dragObject === 'kicker') {
-                kicker.x = mouseX - kicker.width / 2;
-                kicker.y = mouseY - kicker.height / 2;
-                
-                if (!ballInMotion && checkFootCollision(kicker, ball)) {
-                    kickBall();
-                    kicker.x = sprites.kicker.x;
-                    kicker.y = sprites.kicker.y;
-                    isDragging = false;
-                    dragObject = null;
-                }
-            } else if (dragObject === 'keeper') {
-                const prevY = keeper.y;
-                
-                const minX = sprites.goal.x - 150;
-                const maxX = sprites.goal.x + sprites.goal.width + 150 - keeper.width;
-                const minY = sprites.goal.y - 100;
-                const maxY = sprites.goal.y + sprites.goal.height + 100 - keeper.height;
-                
-                keeper.x = Math.max(minX, Math.min(mouseX - keeper.width / 2, maxX));
-                keeper.y = Math.max(minY, Math.min(mouseY - keeper.height / 2, maxY));
-                
-                if (!keeperHasDived && gameState === 'TEAM_A_GK') {
-                    const yMovement = keeper.y - playerKeeperStartY;
-                    console.log(`Y Movement: ${yMovement}, Threshold: ${diveThreshold}`);
+            document.getElementById('totalGoals').textContent = playerStats.totalGoals;
+            document.getElementById('totalSavesGk').textContent = playerStats.totalSaves;
+        }
+
+        function savePlayerStats() {
+            localStorage.setItem('penaltyStatsV2', JSON.stringify(playerStats));
+            document.getElementById('totalGoals').textContent = playerStats.totalGoals;
+            document.getElementById('totalSavesGk').textContent = playerStats.totalSaves;
+        }
+
+        function populateSkins() {
+            const renderGrid = (gridId, data, currentId, selectFn) => {
+                const grid = document.getElementById(gridId);
+                grid.innerHTML = '';
+                const compareStat = gridId === 'skinGrid' ? playerStats.totalGoals : playerStats.totalSaves;
+
+                data.forEach(skin => {
+                    const isUnlocked = compareStat >= skin.requirement;
+                    const isActive = currentId === skin.id;
                     
-                    if (yMovement > diveThreshold) {
-                        keeperDiving = true;
-                        keeperHasDived = true;
-                        
-                        const goalCenterX = sprites.goal.x + sprites.goal.width / 2;
-                        const keeperCenterX = keeper.x + keeper.width / 2;
-                        
-                        if (keeperCenterX < goalCenterX - 30) {
-                            keeperRotation = -Math.PI / 2;
-                            console.log('Player keeper diving LEFT!');
-                        } else if (keeperCenterX > goalCenterX + 30) {
-                            keeperRotation = Math.PI / 2;
-                            console.log('Player keeper diving RIGHT!');
-                        } else {
-                            keeperRotation = 0;
-                            console.log('Player keeper diving CENTER!');
-                        }
+                    const item = document.createElement('div');
+                    item.className = `skin-item ${isUnlocked ? '' : 'locked'} ${isActive ? 'active' : ''}`;
+                    
+                    item.innerHTML = `
+                        <img class="skin-preview" src="${skin.file}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect width=\\'100\\' height=\\'100\\' fill=\\'%23ccc\\'/><text x=\\'50\\' y=\\'50\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\'>N/A</text></svg>'">
+                        <div class="skin-name">${skin.name}</div>
+                        <div class="skin-requirement">Req: ${skin.requirement}</div>
+                    `;
+                    
+                    if (isUnlocked) {
+                        item.onclick = () => selectFn(skin.id);
                     }
-                }
+                    grid.appendChild(item);
+                });
             }
-        });
-        
-        canvas.addEventListener('mouseup', (e) => {
-            if (!isDragging) return;
+
+            renderGrid('skinGrid', skins, playerStats.currentSkin, (id) => {
+                playerStats.currentSkin = id;
+                const file = skins.find(s => s.id === id).file;
+                images.thekicker.src = file;
+                savePlayerStats();
+                populateSkins();
+            });
+
+            renderGrid('gkSkinGrid', gkSkins, playerStats.currentGkSkin, (id) => {
+                playerStats.currentGkSkin = id;
+                const file = gkSkins.find(s => s.id === id).file;
+                images.thekeeper.src = file;
+                savePlayerStats();
+                populateSkins();
+            });
+        }
+
+        function setupSkinsUI() {
+            const togglePanel = (btnId, panelId) => {
+                document.getElementById(btnId).onclick = () => {
+                    const panel = document.getElementById(panelId);
+                    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+                    populateSkins();
+                };
+            };
+            togglePanel('skinButton', 'skinPanel');
+            togglePanel('gkSkinButton', 'gkSkinPanel');
             
-            if (dragObject === 'kicker') {
-                kicker.x = sprites.kicker.x;
-                kicker.y = sprites.kicker.y;
-            } else if (dragObject === 'keeper') {
-                keeper.x = sprites.keeper.x;
-                keeper.y = sprites.keeper.y;
+            document.getElementById('closeSkinPanel').onclick = () => document.getElementById('skinPanel').style.display = 'none';
+            document.getElementById('closeGkSkinPanel').onclick = () => document.getElementById('gkSkinPanel').style.display = 'none';
+        }
+
+        function applyLoadedSkins() {
+            if (playerStats.currentSkin !== 'default') {
+                const s = skins.find(x => x.id === playerStats.currentSkin);
+                if (s) images.thekicker.src = s.file;
             }
-            
-            isDragging = false;
-            dragObject = null;
-        });
-        
-        window.addEventListener('resize', resizeCanvas);
-        
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'h' || e.key === 'H') {
-                showHitboxes = !showHitboxes;
-                console.log('Hitboxes:', showHitboxes ? 'ON' : 'OFF');
+            if (playerStats.currentGkSkin !== 'default') {
+                const s = gkSkins.find(x => x.id === playerStats.currentGkSkin);
+                if (s) images.thekeeper.src = s.file;
             }
-        });
-        canvas.addEventListener('touchstart', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const mouseX = touch.clientX - rect.left;
-            const mouseY = touch.clientY - rect.top;
+        }
 
-            if (ballInMotion) return;
+        function initGameEngine() {
+            loadPlayerStats();
+            applyLoadedSkins();
+            setupSkinsUI();
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            startRoundFlow();
+            requestAnimationFrame(gameLoop);
+        }
 
-            if (gameState === 'TEAM_A_KICK') {
-                if (mouseX >= kicker.x && mouseX <= kicker.x + kicker.width &&
-                    mouseY >= kicker.y && mouseY <= kicker.y + kicker.height) {
-                    isDragging = true;
-                    dragObject = 'kicker';
-                    dragStart = { x: mouseX, y: mouseY };
-                }
-            } else if (gameState === 'TEAM_A_GK') {
-                if (mouseX >= keeper.x && mouseX <= keeper.x + keeper.width &&
-                    mouseY >= keeper.y && mouseY <= keeper.y + keeper.height) {
-                    isDragging = true;
-                    dragObject = 'keeper';
-                    dragStart = { x: mouseX, y: mouseY };
-                    playerKeeperStartY = keeper.y;
-                }
-            }
-            e.preventDefault();
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const mouseX = touch.clientX - rect.left;
-            const mouseY = touch.clientY - rect.top;
-
-            if (dragObject === 'kicker') {
-                kicker.x = mouseX - kicker.width / 2;
-                kicker.y = mouseY - kicker.height / 2;
-
-                if (!ballInMotion && checkFootCollision(kicker, ball)) {
-                    kickBall();
-                    kicker.x = sprites.kicker.x;
-                    kicker.y = sprites.kicker.y;
-                    isDragging = false;
-                    dragObject = null;
-                }
-            } else if (dragObject === 'keeper') {
-                const minX = sprites.goal.x - 150;
-                const maxX = sprites.goal.x + sprites.goal.width + 150 - keeper.width;
-                const minY = sprites.goal.y - 100;
-                const maxY = sprites.goal.y + sprites.goal.height + 100 - keeper.height;
-
-                keeper.x = Math.max(minX, Math.min(mouseX - keeper.width / 2, maxX));
-                keeper.y = Math.max(minY, Math.min(mouseY - keeper.height / 2, maxY));
-
-                if (!keeperHasDived && gameState === 'TEAM_A_GK') {
-                    const yMovement = keeper.y - playerKeeperStartY;
-                    if (yMovement > diveThreshold) {
-                        keeperDiving = true;
-                        keeperHasDived = true;
-                        const goalCenterX = sprites.goal.x + sprites.goal.width / 2;
-                        const keeperCenterX = keeper.x + keeper.width / 2;
-                        if (keeperCenterX < goalCenterX - 30) {
-                            keeperRotation = -Math.PI / 2;
-                        } else if (keeperCenterX > goalCenterX + 30) {
-                            keeperRotation = Math.PI / 2;
-                        } else {
-                            keeperRotation = 0;
-                        }
-                    }
-                }
-            }
-            e.preventDefault();
-        }, { passive: false });
-
-        canvas.addEventListener('touchend', (e) => {
-            if (!isDragging) return;
-            if (dragObject === 'kicker') {
-                kicker.x = sprites.kicker.x;
-                kicker.y = sprites.kicker.y;
-            } else if (dragObject === 'keeper') {
-                keeper.x = sprites.keeper.x;
-                keeper.y = sprites.keeper.y;
-            }
-            isDragging = false;
-            dragObject = null;
-            e.preventDefault();
-        }, { passive: false });
-
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM fully loaded, starting game initialization");
-            loadImages();
-        });
+        window.addEventListener('DOMContentLoaded', loadImages);
     </script>
 </body>
 </html>
